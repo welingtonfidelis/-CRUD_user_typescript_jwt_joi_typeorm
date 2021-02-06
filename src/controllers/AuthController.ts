@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User from '../app/models/User';
 import UserView from '../app/models/UserView';
+import utils from '../utils';
 
 class AuthController {
   async authenticate(req: Request, res: Response) {
@@ -14,21 +15,24 @@ class AuthController {
 
       const user = await repository.findOne({ where: { email } });
 
-      if (!user) return res.sendStatus(401);
+      if (!user) {
+        return utils.errorResponse(res, { message: ['invalid email or password'], code: 401});
+      }
 
       const isValidPassword = bcrypt.compareSync(password, user.password);
 
-      if (!isValidPassword) return res.sendStatus(401);
+      if (!isValidPassword) {
+        return utils.errorResponse(res, { message: ['invalid email or password'], code: 401});
+      }
 
       const token = jwt.sign({ id: user.id }, jwtSecret, { expiresIn: '8h' });
 
       const userView = new UserView(user.id, user.email, token);
 
-      return res.json(userView);
+      return utils.successResponse(res, userView);
 
     } catch (error) {
-      console.log(error);
-      return res.status(error.code || 500).send(error)
+      return utils.errorResponse(res, error);
     }
   }
 }

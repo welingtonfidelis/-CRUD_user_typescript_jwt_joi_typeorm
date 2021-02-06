@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
+import utils from '../utils';
 interface TokenPayload {
   id: string;
   iat: number;
@@ -12,7 +13,9 @@ const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
     const jwtSecret: string = process.env.JWT_SECRET!;
     const { authorization } = req.headers;
 
-    if (!authorization) return res.sendStatus(401);
+    if (!authorization) {
+      return utils.errorResponse(res, { message: ['jwt required'], code: 401 });
+    }
 
     const token = authorization.replace('Bearer', '').trim();
     const data = jwt.verify(token, jwtSecret);
@@ -22,8 +25,7 @@ const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
 
     return next();
   } catch (error) {
-    console.log(error);
-    return res.status(error.code || 401).send(error);
+    return utils.errorResponse(res, { ...error, code: 401 });
   }
 }
 

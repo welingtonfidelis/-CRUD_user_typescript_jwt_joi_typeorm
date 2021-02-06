@@ -3,20 +3,22 @@ import { getRepository } from 'typeorm';
 
 import User from '../app/models/User';
 import UserView from '../app/models/UserView';
+import utils from '../utils';
 
 class UserController {
   async index(req: Request, res: Response) {
     try {
+      const page = parseInt(req.query.page as string, 10) || 1;
+      const limit = parseInt(req.query.limit as string, 10) || 2;
+      
       const repository = getRepository(User);
-
-      const users = await repository.find();
+      const users = await repository.find({ skip: limit * (page -1), take: limit });
       const usersView = users.map((item: User) => new UserView(item.id, item.email));
 
-      return res.json(usersView);
+      return utils.successResponse(res, usersView);
       
     } catch (error) {
-      console.log(error);
-      return res.status(error.code || 500).send(error);
+      return utils.errorResponse(res, error);
     }
   }
 
@@ -27,17 +29,24 @@ class UserController {
 
       const userExists = await repository.findOne({ where: { email } });
 
-      if (userExists) return res.sendStatus(409);
+      if (userExists) {
+        return utils.errorResponse(res, { message: ['email already in use'], code: 409});
+      }
 
       const user = repository.create({ email, password });
       await repository.save(user);
 
-      return res.json(user);
+      const userView = new UserView(user.id, user.email);
+
+      return utils.successResponse(res, userView, 201);
 
     } catch (error) {
-      console.log(error);
-      return res.status(error.code || 500).send(error)
+      return utils.errorResponse(res, error);
     }
+  }
+
+  async update(req: Request, res: Response) {
+
   }
 }
 
