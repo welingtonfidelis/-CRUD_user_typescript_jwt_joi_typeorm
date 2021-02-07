@@ -1,13 +1,9 @@
-import { Request } from 'express';
 import { getRepository, Not } from 'typeorm';
 import User from '../models/User';
 import UserView from '../models/UserView';
 
 const methods = {
-  async index(req: Request) {
-    const page = parseInt(req.query.page as string, 10) || 1;
-    const limit = parseInt(req.query.limit as string, 10) || 2;
-
+  async index(page: number, limit: number) {
     const repository = getRepository(User);
     const users = await repository.find({ skip: limit * (page - 1), take: limit });
     const usersView = users.map((item: User) => new UserView(item.id, item.email));
@@ -15,10 +11,8 @@ const methods = {
     return usersView;
   },
 
-  async show(req: Request) {
+  async show(id: string) {
     const repository = getRepository(User);
-    const { id } = req.params;
-
     const userSelected = await repository.findOne({ where: { id } });
 
     if (!userSelected) {
@@ -33,9 +27,8 @@ const methods = {
     return usersView;
   },
 
-  async store(req: Request) {
+  async store(email: string, password: string) {
     const repository = getRepository(User);
-    const { email, password } = req.body;
 
     const userExists = await repository.findOne({ where: { email } });
 
@@ -54,10 +47,8 @@ const methods = {
     return userView;
   },
 
-  async update(req: Request) {
+  async update(id: string, email: string, password: string) {
     const repository = getRepository(User);
-    const { id } = req.params;
-    const { email, password } = req.body;
 
     const userSelected = await repository.findOne({ where: { id } });
 
@@ -85,9 +76,8 @@ const methods = {
     return userView
   },
 
-  async delete(req: Request) {
+  async delete(id: string) {
     const repository = getRepository(User);
-    const { id } = req.params;
 
     const userSelected = await repository.findOne({ where: { id } });
 

@@ -19,7 +19,8 @@ const inputValidate = (req: Request, res: Response, next: NextFunction) => {
       (detail) => detail.message.replace(/(")|(")/g, ''),
     );
 
-    return utils.errorResponse(res, { message, code: 400 });
+    const { code, data } = utils.errorResponse({ message, code: 400 });
+    return res.status(code).send(data);
   }
 
   next();

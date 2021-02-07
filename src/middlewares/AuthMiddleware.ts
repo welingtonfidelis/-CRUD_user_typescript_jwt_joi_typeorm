@@ -14,18 +14,20 @@ const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
     const { authorization } = req.headers;
 
     if (!authorization) {
-      return utils.errorResponse(res, { message: ['jwt required'], code: 401 });
+      const { code, data } = utils.errorResponse({ message: ['jwt required'], code: 401 });
+      return res.status(code).send(data);
     }
 
     const token = authorization.replace('Bearer', '').trim();
     const data = jwt.verify(token, jwtSecret);
-    const { id } = data as TokenPayload; 
-    
+    const { id } = data as TokenPayload;
+
     req.userId = id;
 
     return next();
   } catch (error) {
-    return utils.errorResponse(res, { ...error, code: 401 });
+    const { code, data } = utils.errorResponse({ ...error, code: 401 })
+    return res.status(code).send(data);
   }
 }
 

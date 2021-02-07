@@ -1,4 +1,3 @@
-import { Request } from 'express';
 import { getRepository } from 'typeorm';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -6,10 +5,9 @@ import User from '../models/User';
 import UserView from '../models/UserView';
 
 const methods = {
-  async authenticate(req: Request) {
+  async authenticate(email: string, password: string) {
     const jwtSecret: string = process.env.JWT_SECRET!; 
       const repository = getRepository(User);
-      const { email, password } = req.body;
 
       const user = await repository.findOne({ where: { email } });
 

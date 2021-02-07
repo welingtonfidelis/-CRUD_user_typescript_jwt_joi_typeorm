@@ -5,12 +5,14 @@ import utils from '../utils';
 class AuthController {
   async authenticate(req: Request, res: Response) {
     try {
-      const data = await authServices.authenticate(req);
+      const { email, password } = req.body;
+      const data = await authServices.authenticate(email, password);
 
-      return utils.successResponse(res, data);
+      return res.send(utils.successResponse(data));
 
     } catch (error) {
-      return utils.errorResponse(res, error);
+      const { code, data } = utils.errorResponse(error);
+      return res.status(code).send(data);
     }
   }
 }
