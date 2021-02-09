@@ -1,19 +1,16 @@
-import { getRepository, Not } from 'typeorm';
-import User from '../models/User';
 import UserView from '../models/UserView';
+import userRepository from '../repositories/user';
 
 const methods = {
   async index(page: number, limit: number) {
-    const repository = getRepository(User);
-    const users = await repository.find({ skip: limit * (page - 1), take: limit });
-    const usersView = users.map((item: User) => new UserView(item.id, item.email));
+    const skip = limit * (page - 1);
+    const users = await userRepository.index(skip, limit);
 
-    return usersView;
+    return users;
   },
 
   async show(id: string) {
-    const repository = getRepository(User);
-    const userSelected = await repository.findOne({ where: { id } });
+    const userSelected = await userRepository.showById(id);
 
     if (!userSelected) {
       throw {
@@ -21,16 +18,14 @@ const methods = {
         code: 400
       }
     }
-    
+
     const usersView = new UserView(userSelected.id, userSelected.email);
 
     return usersView;
   },
 
   async store(email: string, password: string) {
-    const repository = getRepository(User);
-
-    const userExists = await repository.findOne({ where: { email } });
+    const userExists = await userRepository.showByEmail(email);
 
     if (userExists) {
       throw {
@@ -39,18 +34,13 @@ const methods = {
       }
     }
 
-    const user = repository.create({ email, password });
-    await repository.save(user);
+    const user = await userRepository.store(email, password);
 
-    const userView = new UserView(user.id, user.email);
-
-    return userView;
+    return user;
   },
 
   async update(id: string, email: string, password: string) {
-    const repository = getRepository(User);
-
-    const userSelected = await repository.findOne({ where: { id } });
+    const userSelected = await userRepository.showById(id);
 
     if (!userSelected) {
       throw {
@@ -59,7 +49,7 @@ const methods = {
       }
     }
 
-    const emailInUse = await repository.findOne({ where: { email, id: Not(id) } });
+    const emailInUse = await userRepository.showByEmailWithDifferentId(id, email);
 
     if (emailInUse) {
       throw {
@@ -68,18 +58,13 @@ const methods = {
       }
     }
 
-    const user = new User(userSelected.id, email, password);
-    await repository.save(user);
+    const user = await userRepository.update(id, email, password);
 
-    const userView = new UserView(user.id, user.email);
-
-    return userView
+    return user;
   },
 
   async delete(id: string) {
-    const repository = getRepository(User);
-
-    const userSelected = await repository.findOne({ where: { id } });
+    const userSelected = await userRepository.showById(id);
 
     if (!userSelected) {
       throw {
@@ -87,8 +72,8 @@ const methods = {
         code: 400
       }
     }
-  
-    await repository.delete({ id });
+
+    await userRepository.delete(id);
 
     return {};
   }

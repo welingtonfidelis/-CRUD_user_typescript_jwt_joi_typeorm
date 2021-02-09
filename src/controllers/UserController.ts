@@ -7,7 +7,7 @@ class UserController {
   async index(req: Request, res: Response) {
     try {
       const page = parseInt(req.query.page as string, 10) || 1;
-      const limit = parseInt(req.query.limit as string, 10) || 2;
+      const limit = parseInt(req.query.limit as string, 10) || 10;
 
       const data = await userServices.index(page, limit);
 
