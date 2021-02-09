@@ -15,7 +15,11 @@ const methods = {
   async showById(id: string) {
     const repository = getRepository(User);
 
-    return await repository.findOne({ where: { id } });
+    const user = await repository.findOne({ where: { id } });
+
+    if (user) return new UserView(user.id, user.email);
+    
+    return user;
   },
 
   async showByEmail(email: string) {

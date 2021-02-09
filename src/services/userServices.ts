@@ -10,18 +10,16 @@ const methods = {
   },
 
   async show(id: string) {
-    const userSelected = await userRepository.showById(id);
+    const user = await userRepository.showById(id);
 
-    if (!userSelected) {
+    if (!user) {
       throw {
         message: ['User not found'],
         code: 400
       }
     }
 
-    const usersView = new UserView(userSelected.id, userSelected.email);
-
-    return usersView;
+    return user;
   },
 
   async store(email: string, password: string) {
